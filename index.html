@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ESD AI Range 계산기</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#0a1628,#1a2744,#0d2137);min-height:100vh;color:#e0e8f0;padding:0 0 60px}
+.header{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);padding:16px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:700;color:#60a5fa}
+.header p{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.container{padding:16px;max-width:500px;margin:0 auto}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700;color:#60a5fa;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title .icon{font-size:18px}
+.card.hero{background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(59,130,246,.03));border:1.5px solid rgba(96,165,250,.15)}
+.const-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.const-item{background:rgba(0,0,0,.2);border-radius:10px;padding:12px}
+.const-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;font-weight:600}
+.const-value{font-size:18px;font-weight:600;color:#f0f4f8}
+.input-group{margin-bottom:14px}
+.input-group:last-child{margin-bottom:0}
+.input-label{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px;font-weight:600}
+input[type="number"]{width:100%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;color:#fff;font-size:18px;font-weight:500;outline:none;transition:border-color .2s;-webkit-appearance:none}
+input:focus{border-color:rgba(96,165,250,.5)}
+input::placeholder{color:rgba(255,255,255,.2)}
+.result-box{background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(59,130,246,.05));border:1px solid rgba(96,165,250,.2);border-radius:14px;padding:14px}
+.result-label{font-size:11px;color:rgba(96,165,250,.7);font-weight:600;margin-bottom:4px}
+.result-value{font-size:22px;font-weight:300;color:#60a5fa;word-break:break-all}
+.result-box.sqrt{background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(245,158,11,.05));border-color:rgba(251,191,36,.2)}
+.result-box.sqrt .result-label{color:rgba(251,191,36,.7)}
+.result-box.sqrt .result-value{color:#fbbf24}
+.calc-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;transition:all .2s}
+.calc-btn:active{transform:scale(.97);opacity:.9}
+.mid-table{width:100%;border-collapse:collapse;font-size:13px}
+.mid-table th{background:rgba(96,165,250,.1);padding:10px 8px;text-align:center;color:#60a5fa;font-weight:600;border-bottom:1px solid rgba(255,255,255,.06)}
+.mid-table td{padding:10px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);color:#c8d6e0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(96,165,250,.9);color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:600;opacity:0;transition:opacity .3s;z-index:1000;pointer-events:none}
+.toast.show{opacity:1}
+.settings-toggle{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;margin-bottom:16px;cursor:pointer;transition:all .3s}
+.settings-toggle .left{display:flex;align-items:center;gap:10px}
+.settings-toggle .left span:first-child{font-size:18px}
+.settings-toggle .left span:last-child{font-size:14px;font-weight:600;color:#60a5fa}
+.settings-toggle .right{font-size:12px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:4px}
+.settings-toggle .arrow{transition:transform .3s;display:inline-block}
+.settings-toggle .arrow.open{transform:rotate(180deg)}
+.settings-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.settings-body.open{max-height:800px}
+.range-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:20px;padding:6px 14px;font-size:13px;color:#60a5fa;font-weight:600;margin-bottom:16px}
+.setup-guide{background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(245,158,11,.05));border:1.5px solid rgba(251,191,36,.3);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;animation:guidePulse 2s ease-in-out infinite}
+.setup-guide .emoji{font-size:36px;margin-bottom:10px}
+.setup-guide .title{font-size:16px;font-weight:700;color:#fbbf24;margin-bottom:6px}
+.setup-guide .desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6}
+@keyframes guidePulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.2)}50%{box-shadow:0 0 20px 4px rgba(251,191,36,.15)}}
+.disabled-overlay{position:relative}
+.disabled-overlay::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,22,40,.6);border-radius:16px;z-index:2;pointer-events:none}
+.disabled-overlay input,.disabled-overlay .mode-btn{pointer-events:none}
+.disabled-msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;text-align:center;color:rgba(255,255,255,.5);font-size:14px;font-weight:600;pointer-events:none}
+.settings-toggle.highlight{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.08);animation:togglePulse 1.5s ease-in-out infinite}
+@keyframes togglePulse{0%,100%{border-color:rgba(251,191,36,.4)}50%{border-color:rgba(251,191,36,.7)}}
+.mode-switch{display:flex;background:rgba(0,0,0,.3);border-radius:12px;padding:4px;margin-bottom:16px}
+.mode-btn{flex:1;padding:12px;border:none;border-radius:10px;background:transparent;color:rgba(255,255,255,.35);font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent}
+.mode-btn.active{background:rgba(96,165,250,.2);color:#60a5fa;box-shadow:0 2px 8px rgba(96,165,250,.15)}
+.input-wrap{position:relative}
+.input-tag{position:absolute;top:50%;right:16px;transform:translateY(-50%);font-size:13px;font-weight:700;color:rgba(96,165,250,.4);pointer-events:none}
+.results-title{font-size:12px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:20px}
+.result-box.is-input{border-color:rgba(96,165,250,.5)!important;border-width:1.5px!important}
+.result-box.sqrt.is-input{border-color:rgba(251,191,36,.5)!important;border-width:1.5px!important}
+.bar-section{margin-top:20px}
+.bar-group{margin-bottom:18px}
+.bar-group:last-child{margin-bottom:0}
+.bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bar-label{font-size:12px;font-weight:700;color:rgba(255,255,255,.45)}
+.bar-pct{font-size:14px;font-weight:700}
+.bar-pct.lin{color:#60a5fa}
+.bar-pct.sq{color:#fbbf24}
+.bar-pct .over{font-size:10px;color:rgba(255,100,100,.7);margin-left:4px}
+.bar-track{width:100%;height:28px;background:rgba(0,0,0,.3);border-radius:14px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:14px;transition:width .4s cubic-bezier(.25,.8,.25,1);min-width:0}
+.bar-fill.lin{background:linear-gradient(90deg,rgba(96,165,250,.3),rgba(96,165,250,.6));box-shadow:0 0 12px rgba(96,165,250,.2)}
+.bar-fill.sq{background:linear-gradient(90deg,rgba(251,191,36,.3),rgba(251,191,36,.6));box-shadow:0 0 12px rgba(251,191,36,.2)}
+.bar-ticks{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;pointer-events:none}
+.bar-tick{flex:1;border-right:1px solid rgba(255,255,255,.06)}
+.bar-tick:last-child{border-right:none}
+.bar-scale{display:flex;justify-content:space-between;margin-top:4px}
+.bar-scale-item{display:flex;flex-direction:column;align-items:center;min-width:0}
+.bar-scale-item:first-child{align-items:flex-start}
+.bar-scale-item:last-child{align-items:flex-end}
+.bar-scale-pct{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);line-height:1}
+.bar-scale-val{font-size:9px;font-weight:600;color:rgba(255,255,255,.15);line-height:1;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>⚡ ESD AI Range 계산기</h1>
+<p>Transmitter 신호 변환 계산</p>
+</div>
+<div class="container">
+<div class="setup-guide" id="setupGuide" style="display:none">
+<div class="emoji">👋</div>
+<div class="title">먼저 Transmitter Range를 설정해주세요!</div>
+<div class="desc">아래에서 사용하는 계기의 Range (하한/상한) 값을<br>입력하고 <b style="color:#fbbf24">💾 설정 저장</b>을 눌러주세요.</div>
+</div>
+<div class="settings-toggle" id="settingsToggle" onclick="toggleSettings()">
+<div class="left"><span>⚙️</span><span>Range 설정</span></div>
+<div class="right"><span id="settingSummary">0 ~ 650</span><span class="arrow" id="settingsArrow">▼</span></div>
+</div>
+<div class="settings-body" id="settingsBody">
+<div class="card">
+<div class="card-title"><span class="icon">🔒</span> 기본 상수 (고정)</div>
+<div class="const-grid">
+<div class="const-item"><div class="const-label">4mA Real</div><div class="const-value">819</div></div>
+<div class="const-item"><div class="const-label">20mA Real</div><div class="const-value">4095</div></div>
+</div></div>
+<div class="card">
+<div class="card-title"><span class="icon">✏️</span> Transmitter Range</div>
+<div class="input-group"><div class="input-label">4mA Range (하한)</div><input type="number" id="setD3" value="0" placeholder="0"></div>
+<div class="input-group"><div class="input-label">20mA Range (상한)</div><input type="number" id="setD7" value="650" placeholder="650"></div>
+<button class="calc-btn" onclick="saveSettings()">💾 설정 저장</button>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">📊</span> 중간값 참조</div>
+<table class="mid-table">
+<tr><th>mA</th><th>Real</th><th>RAW</th><th>Range</th></tr>
+<tr><td>4</td><td>819</td><td>0</td><td id="midD3">0</td></tr>
+<tr><td>8</td><td id="midB4">1638</td><td>0.25</td><td id="midD4">162.5</td></tr>
+<tr><td>12</td><td id="midB5">2457</td><td>0.5</td><td id="midD5">325</td></tr>
+<tr><td>16</td><td id="midB6">3276</td><td>0.75</td><td id="midD6">487.5</td></tr>
+<tr><td>20</td><td>4095</td><td>1</td><td id="midD7">650</td></tr>
+</table></div></div>
+<div class="range-badge" id="rangeBadge">📡 Range: 0 ~ 650</div>
+<div class="card hero" id="quickCard">
+<div class="card-title"><span class="icon">⚡</span> ESD 값 빠른 변환</div>
+<div class="mode-switch">
+<button class="mode-btn active" id="modeReal" onclick="setMode('real')">Real</button>
+<button class="mode-btn" id="modeValue" onclick="setMode('value')">Value</button>
+<button class="mode-btn" id="modeMA" onclick="setMode('ma')">mA</button>
+</div>
+<div class="input-wrap">
+<input type="number" id="mainInput" placeholder="Real 값을 입력하세요" oninput="calculate()" inputmode="decimal">
+<span class="input-tag" id="inputTag">Real</span>
+</div>
+<div class="results-title">📊 선형 (Linear)</div>
+<div class="grid-3">
+<div class="result-box" id="box_lin_real"><div class="result-label">Real</div><div class="result-value" id="out_lin_real">-</div></div>
+<div class="result-box" id="box_lin_value"><div class="result-label">Value</div><div class="result-value" id="out_lin_value">-</div></div>
+<div class="result-box" id="box_lin_ma"><div class="result-label">mA</div><div class="result-value" id="out_lin_ma">-</div></div>
+</div>
+<div class="results-title">📐 제곱근 (SQRT)</div>
+<div class="grid-3">
+<div class="result-box sqrt" id="box_sq_real"><div class="result-label">√ Real</div><div class="result-value" id="out_sq_real">-</div></div>
+<div class="result-box sqrt" id="box_sq_value"><div class="result-label">√ Value</div><div class="result-value" id="out_sq_value">-</div></div>
+<div class="result-box sqrt" id="box_sq_ma"><div class="result-label">√ mA</div><div class="result-value" id="out_sq_ma">-</div></div>
+</div>
+<div class="bar-section">
+<div class="results-title">📶 신호 비율</div>
+<div class="bar-group">
+<div class="bar-header"><span class="bar-label">📊 선형 (Linear)</span><span class="bar-pct lin" id="bar_lin_pct">-</span></div>
+<div class="bar-track"><div class="bar-ticks"><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div></div><div class="bar-fill lin" id="bar_lin_fill" style="width:0%"></div></div>
+<div class="bar-scale" id="scale_lin"><div class="bar-scale-item"><span class="bar-scale-pct">0%</span><span class="bar-scale-val">0</span></div><div class="bar-scale-item"><span class="bar-scale-pct">25%</span><span class="bar-scale-val">162.5</span></div><div class="bar-scale-item"><span class="bar-scale-pct">50%</span><span class="bar-scale-val">325</span></div><div class="bar-scale-item"><span class="bar-scale-pct">75%</span><span class="bar-scale-val">487.5</span></div><div class="bar-scale-item"><span class="bar-scale-pct">100%</span><span class="bar-scale-val">650</span></div></div>
+</div>
+<div class="bar-group">
+<div class="bar-header"><span class="bar-label">📐 제곱근 (SQRT)</span><span class="bar-pct sq" id="bar_sq_pct">-</span></div>
+<div class="bar-track"><div class="bar-ticks"><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div></div><div class="bar-fill sq" id="bar_sq_fill" style="width:0%"></div></div>
+<div class="bar-scale" id="scale_sq"><div class="bar-scale-item"><span class="bar-scale-pct">0%</span><span class="bar-scale-val">0</span></div><div class="bar-scale-item"><span class="bar-scale-pct">25%</span><span class="bar-scale-val">162.5</span></div><div class="bar-scale-item"><span class="bar-scale-pct">50%</span><span class="bar-scale-val">325</span></div><div class="bar-scale-item"><span class="bar-scale-pct">75%</span><span class="bar-scale-val">487.5</span></div><div class="bar-scale-item"><span class="bar-scale-pct">100%</span><span class="bar-scale-val">650</span></div></div>
+</div></div>
+<div class="disabled-msg" id="quickDisabledMsg" style="display:none">☝️ 위에서 Range를 먼저 설정해주세요</div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const B3=819,B7=4095,SPAN=B7-B3;
+let D3,D7,mode='real';
+let isConfigured=localStorage.getItem('esd_configured')==='true';
+function real2ma(r){return 16*((r-B3)/SPAN)+4}
+function ma2real(m){return SPAN*((m-4)/16)+B3}
+function real2val(r){return((D7-D3)*((r-B3)/SPAN))+D3}
+function val2real(v){const d=D7-D3;return d===0?B3:SPAN*((v-D3)/d)+B3}
+function real2sqVal(r){const ratio=(r-B3)/SPAN;return ratio>=0?Math.sqrt(ratio)*D7:NaN}
+function sqVal2real(v){return D7===0?B3:Math.pow(v/D7,2)*SPAN+B3}
+function initApp(){
+if(!isConfigured){D3=0;D7=650;document.getElementById('setupGuide').style.display='block';document.getElementById('settingsToggle').classList.add('highlight');document.getElementById('settingsBody').classList.add('open');document.getElementById('settingsArrow').classList.add('open');document.getElementById('quickCard').classList.add('disabled-overlay');document.getElementById('quickDisabledMsg').style.display='block'}else{D3=parseFloat(localStorage.getItem('esd_D3'))||0;D7=parseFloat(localStorage.getItem('esd_D7'))||650}
+document.getElementById('setD3').value=D3;document.getElementById('setD7').value=D7;updateAll()}
+function saveSettings(){
+D3=parseFloat(document.getElementById('setD3').value)||0;D7=parseFloat(document.getElementById('setD7').value)||650;
+localStorage.setItem('esd_D3',D3);localStorage.setItem('esd_D7',D7);localStorage.setItem('esd_configured','true');isConfigured=true;
+document.getElementById('setupGuide').style.display='none';document.getElementById('settingsToggle').classList.remove('highlight');document.getElementById('settingsBody').classList.remove('open');document.getElementById('settingsArrow').classList.remove('open');document.getElementById('quickCard').classList.remove('disabled-overlay');document.getElementById('quickDisabledMsg').style.display='none';
+updateAll();showToast('✅ 설정 완료! 이제 계산해보세요');setTimeout(()=>document.getElementById('mainInput').focus(),400)}
+function updateAll(){updateMidTable();updateBadge();updateScaleLabels()}
+function updateBadge(){const t=D3+' ~ '+D7;document.getElementById('rangeBadge').textContent='📡 Range: '+t;document.getElementById('settingSummary').textContent=t}
+function updateMidTable(){
+const B5=(B7-B3)/2+B3,B4=(B5-B3)/2+B3,B6=(B7-B5)/2+B5;const D5=(D7-D3)/2+D3,D4=(D5-D3)/2+D3,D6=(D7-D5)/2+D5;
+document.getElementById('midB4').textContent=fmt(B4);document.getElementById('midB5').textContent=fmt(B5);document.getElementById('midB6').textContent=fmt(B6);
+document.getElementById('midD3').textContent=fmt(D3);document.getElementById('midD4').textContent=fmt(D4);document.getElementById('midD5').textContent=fmt(D5);document.getElementById('midD6').textContent=fmt(D6);document.getElementById('midD7').textContent=fmt(D7)}
+function updateScaleLabels(){
+const dR=D7-D3;const pcts=[0,25,50,75,100];
+const linScale=document.getElementById('scale_lin').querySelectorAll('.bar-scale-item');
+const sqScale=document.getElementById('scale_sq').querySelectorAll('.bar-scale-item');
+pcts.forEach((p,i)=>{
+linScale[i].querySelector('.bar-scale-pct').textContent=p+'%';linScale[i].querySelector('.bar-scale-val').textContent=fmtShort(D3+dR*(p/100));
+sqScale[i].querySelector('.bar-scale-pct').textContent=p+'%';sqScale[i].querySelector('.bar-scale-val').textContent=fmtShort((p/100)*D7)})}
+function setMode(m){
+mode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+document.getElementById(m==='real'?'modeReal':m==='value'?'modeValue':'modeMA').classList.add('active');
+const inp=document.getElementById('mainInput'),tag=document.getElementById('inputTag');inp.value='';clearResults();
+if(m==='real'){inp.placeholder='Real 값을 입력하세요';tag.textContent='Real'}else if(m==='value'){inp.placeholder='Value 값을 입력하세요';tag.textContent='Value'}else{inp.placeholder='mA 값을 입력하세요';tag.textContent='mA'}
+inp.focus()}
+function calculate(){
+const v=parseFloat(document.getElementById('mainInput').value);if(isNaN(v)){clearResults();return}
+let linReal,sqReal;
+if(mode==='real'){linReal=v;sqReal=v}else if(mode==='value'){linReal=val2real(v);sqReal=sqVal2real(v)}else{linReal=ma2real(v);sqReal=linReal}
+const linVal=real2val(linReal),linMA=real2ma(linReal),linRaw=(linReal-B3)/SPAN;
+document.getElementById('out_lin_real').textContent=fmt(linReal);document.getElementById('out_lin_value').textContent=fmt(linVal);document.getElementById('out_lin_ma').textContent=fmt(linMA);
+const sqVal=real2sqVal(sqReal),sqMA=real2ma(sqReal),sqRatio=(sqReal-B3)/SPAN,sqRaw=sqRatio>=0?Math.sqrt(sqRatio):NaN;
+document.getElementById('out_sq_real').textContent=isNaN(sqVal)?'N/A':fmt(sqReal);document.getElementById('out_sq_value').textContent=isNaN(sqVal)?'N/A':fmt(sqVal);document.getElementById('out_sq_ma').textContent=isNaN(sqVal)?'N/A':fmt(sqMA);
+updateBar('lin',linRaw*100);updateBar('sq',isNaN(sqRaw)?null:sqRaw*100);highlightInputBoxes()}
+function updateBar(type,pct){
+const fill=document.getElementById('bar_'+type+'_fill'),label=document.getElementById('bar_'+type+'_pct');
+if(pct===null||isNaN(pct)){fill.style.width='0%';label.innerHTML='-';return}
+fill.style.width=Math.max(0,Math.min(pct,100))+'%';
+let html=parseFloat(pct.toFixed(2))+'%';if(pct>100)html+='<span class="over"> ▲ 초과</span>';else if(pct<0)html='<span class="over">▼ 하한 미만</span>';label.innerHTML=html}
+function highlightInputBoxes(){
+document.querySelectorAll('.result-box').forEach(b=>b.classList.remove('is-input'));
+if(mode==='real'){document.getElementById('box_lin_real').classList.add('is-input');document.getElementById('box_sq_real').classList.add('is-input')}
+else if(mode==='value'){document.getElementById('box_lin_value').classList.add('is-input');document.getElementById('box_sq_value').classList.add('is-input')}
+else{document.getElementById('box_lin_ma').classList.add('is-input');document.getElementById('box_sq_ma').classList.add('is-input')}}
+function clearResults(){
+['out_lin_real','out_lin_value','out_lin_ma','out_sq_real','out_sq_value','out_sq_ma'].forEach(id=>document.getElementById(id).textContent='-');
+document.querySelectorAll('.result-box').forEach(b=>b.classList.remove('is-input'));updateBar('lin',null);updateBar('sq',null)}
+function toggleSettings(){document.getElementById('settingsBody').classList.toggle('open');document.getElementById('settingsArrow').classList.toggle('open')}
+function fmt(n){if(isNaN(n)||!isFinite(n))return'Error';return parseFloat(n.toFixed(6)).toString()}
+function fmtShort(n){if(isNaN(n)||!isFinite(n))return'-';if(Number.isInteger(n))return n.toString();return parseFloat(n.toFixed(2)).toString()}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+initApp();
+</script>
+</body></html>
