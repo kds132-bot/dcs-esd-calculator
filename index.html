@@ -2,356 +2,506 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>ESD / DCS 계산기</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DCS / ESD 계산기</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#0a1628,#1a2744,#0d2137);min-height:100vh;color:#e0e8f0;padding:0 0 60px}
-.header{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);padding:16px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:100}
-.header h1{font-size:18px;font-weight:700;color:#60a5fa}
-.header p{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
-.main-tabs{display:flex;background:rgba(0,0,0,.25);padding:6px;gap:6px;position:sticky;top:62px;z-index:99}
-.main-tab{flex:1;padding:11px 6px;border:none;border-radius:10px;background:transparent;color:rgba(255,255,255,.35);font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent}
-.main-tab.active{background:rgba(96,165,250,.2);color:#60a5fa}
-.main-tab.dcs-active{background:rgba(52,211,153,.2);color:#34d399}
-.container{padding:16px;max-width:500px;margin:0 auto}
-.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;margin-bottom:16px}
-.card-title{font-size:14px;font-weight:700;color:#60a5fa;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title .icon{font-size:18px}
-.card.hero{background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(59,130,246,.03));border:1.5px solid rgba(96,165,250,.15)}
-.const-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.const-item{background:rgba(0,0,0,.2);border-radius:10px;padding:12px}
-.const-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;font-weight:600}
-.const-value{font-size:18px;font-weight:600;color:#f0f4f8}
-.input-group{margin-bottom:14px}.input-group:last-child{margin-bottom:0}
-.input-label{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px;font-weight:600}
-input[type="number"],input[type="text"]{width:100%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;color:#fff;font-size:18px;font-weight:500;outline:none;transition:border-color .2s;-webkit-appearance:none}
-input:focus{border-color:rgba(96,165,250,.5)}
-input::placeholder{color:rgba(255,255,255,.2)}
-.result-box{background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(59,130,246,.05));border:1px solid rgba(96,165,250,.2);border-radius:14px;padding:14px}
-.result-label{font-size:11px;color:rgba(96,165,250,.7);font-weight:600;margin-bottom:4px}
-.result-value{font-size:22px;font-weight:300;color:#60a5fa;word-break:break-all}
-.result-box.sqrt{background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(245,158,11,.05));border-color:rgba(251,191,36,.2)}
-.result-box.sqrt .result-label{color:rgba(251,191,36,.7)}
-.result-box.sqrt .result-value{color:#fbbf24}
-.calc-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;transition:all .2s}
-.calc-btn:active{transform:scale(.97);opacity:.9}
-.mid-table{width:100%;border-collapse:collapse;font-size:13px}
-.mid-table th{background:rgba(96,165,250,.1);padding:10px 8px;text-align:center;color:#60a5fa;font-weight:600;border-bottom:1px solid rgba(255,255,255,.06)}
-.mid-table td{padding:10px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);color:#c8d6e0}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(96,165,250,.9);color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:600;opacity:0;transition:opacity .3s;z-index:1000;pointer-events:none}
-.toast.show{opacity:1}
-.settings-toggle{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;margin-bottom:16px;cursor:pointer;transition:all .3s}
-.settings-toggle .left{display:flex;align-items:center;gap:10px}
-.settings-toggle .left span:first-child{font-size:18px}
-.settings-toggle .left span:last-child{font-size:14px;font-weight:600;color:#60a5fa}
-.settings-toggle .right{font-size:12px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:4px}
-.settings-toggle .arrow{transition:transform .3s;display:inline-block}
-.settings-toggle .arrow.open{transform:rotate(180deg)}
-.settings-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
-.settings-body.open{max-height:900px}
-.range-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:20px;padding:6px 14px;font-size:13px;color:#60a5fa;font-weight:600;margin-bottom:16px}
-.setup-guide{background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(245,158,11,.05));border:1.5px solid rgba(251,191,36,.3);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;animation:guidePulse 2s ease-in-out infinite}
-.setup-guide .emoji{font-size:36px;margin-bottom:10px}
-.setup-guide .title{font-size:16px;font-weight:700;color:#fbbf24;margin-bottom:6px}
-.setup-guide .desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6}
-@keyframes guidePulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.2)}50%{box-shadow:0 0 20px 4px rgba(251,191,36,.15)}}
-.disabled-overlay{position:relative}
-.disabled-overlay::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,22,40,.6);border-radius:16px;z-index:2;pointer-events:none}
-.disabled-overlay input{pointer-events:none}
-.disabled-msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;text-align:center;color:rgba(255,255,255,.5);font-size:14px;font-weight:600;pointer-events:none}
-.settings-toggle.highlight{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.08);animation:togglePulse 1.5s ease-in-out infinite}
-@keyframes togglePulse{0%,100%{border-color:rgba(251,191,36,.4)}50%{border-color:rgba(251,191,36,.7)}}
-.mode-switch{display:flex;background:rgba(0,0,0,.3);border-radius:12px;padding:4px;margin-bottom:16px}
-.mode-btn{flex:1;padding:12px;border:none;border-radius:10px;background:transparent;color:rgba(255,255,255,.35);font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent}
-.mode-btn.active{background:rgba(96,165,250,.2);color:#60a5fa}
-.input-wrap{position:relative}
-.input-tag{position:absolute;top:50%;right:16px;transform:translateY(-50%);font-size:13px;font-weight:700;color:rgba(96,165,250,.4);pointer-events:none}
-.results-title{font-size:12px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:20px}
-.result-box.is-input{border-color:rgba(96,165,250,.5)!important;border-width:1.5px!important}
-.result-box.sqrt.is-input{border-color:rgba(251,191,36,.5)!important;border-width:1.5px!important}
-.bar-section{margin-top:20px}.bar-group{margin-bottom:18px}.bar-group:last-child{margin-bottom:0}
-.bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.bar-label{font-size:12px;font-weight:700;color:rgba(255,255,255,.45)}
-.bar-pct{font-size:14px;font-weight:700}.bar-pct.lin{color:#60a5fa}.bar-pct.sq{color:#fbbf24}
-.bar-pct .over{font-size:10px;color:rgba(255,100,100,.7);margin-left:4px}
-.bar-track{width:100%;height:28px;background:rgba(0,0,0,.3);border-radius:14px;overflow:hidden;position:relative}
-.bar-fill{height:100%;border-radius:14px;transition:width .4s cubic-bezier(.25,.8,.25,1);min-width:0}
-.bar-fill.lin{background:linear-gradient(90deg,rgba(96,165,250,.3),rgba(96,165,250,.6));box-shadow:0 0 12px rgba(96,165,250,.2)}
-.bar-fill.sq{background:linear-gradient(90deg,rgba(251,191,36,.3),rgba(251,191,36,.6));box-shadow:0 0 12px rgba(251,191,36,.2)}
-.bar-ticks{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;pointer-events:none}
-.bar-tick{flex:1;border-right:1px solid rgba(255,255,255,.06)}.bar-tick:last-child{border-right:none}
-.bar-scale{display:flex;justify-content:space-between;margin-top:4px}
-.bar-scale-item{display:flex;flex-direction:column;align-items:center;min-width:0}
-.bar-scale-item:first-child{align-items:flex-start}.bar-scale-item:last-child{align-items:flex-end}
-.bar-scale-pct{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);line-height:1}
-.bar-scale-val{font-size:9px;font-weight:600;color:rgba(255,255,255,.15);line-height:1;margin-top:2px}
-.panel{display:none}.panel.active{display:block}
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #dbeafe;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --danger: #ef4444;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --radius: 16px;
+  }
 
-/* DCS 전용 */
-.dcs .card-title{color:#34d399}
-.dcs .card.hero{background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(16,185,129,.03));border-color:rgba(52,211,153,.15)}
-.dcs .range-badge{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.2);color:#34d399}
-.dcs input:focus{border-color:rgba(52,211,153,.5)}
-.dcs .calc-btn{background:linear-gradient(135deg,#10b981,#059669)}
-.dcs .settings-toggle .left span:last-child{color:#34d399}
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-/* DCS 결과 대형 */
-.dcs-result-hero{
-  background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(245,158,11,.05));
-  border:2px solid rgba(251,191,36,.25);border-radius:20px;
-  padding:28px 20px;margin-top:20px;text-align:center;
-  position:relative;overflow:hidden}
-.dcs-result-hero::before{content:'√';position:absolute;top:-10px;right:10px;font-size:120px;font-weight:900;color:rgba(251,191,36,.04);pointer-events:none}
-.dcs-result-hero .label{font-size:13px;color:rgba(251,191,36,.6);font-weight:700;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase}
-.dcs-result-hero .value{font-size:48px;font-weight:200;color:#fbbf24;line-height:1.1}
-.dcs-result-hero .unit-display{font-size:18px;color:rgba(251,191,36,.6);margin-top:8px;font-weight:600}
-.dcs-result-hero .sub{font-size:12px;color:rgba(255,255,255,.3);margin-top:12px;line-height:1.6}
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-/* DCS 수식 */
-.dcs-formula{
-  background:rgba(0,0,0,.2);border-radius:12px;padding:14px;
-  margin-top:16px;text-align:center;
-  font-family:'Courier New',monospace;font-size:13px;color:rgba(255,255,255,.35);line-height:1.8}
-.dcs-formula b{color:rgba(251,191,36,.6)}
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff;
+    padding: 24px 20px 60px;
+    text-align: center;
+    position: relative;
+  }
+  .header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
 
-/* 단위 입력 */
-.unit-input{
-  background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;
-  padding:14px 16px;color:#fbbf24;font-size:16px;font-weight:600;
-  width:100%;outline:none;transition:border-color .2s;-webkit-appearance:none}
-.unit-input:focus{border-color:rgba(52,211,153,.5)}
-.unit-input::placeholder{color:rgba(255,255,255,.15);font-weight:400}
+  .tab-nav {
+    display: flex; gap: 6px; padding: 0 16px;
+    margin-top: -36px; position: relative; z-index: 10;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
 
-/* 설명 카드 */
-.info-card{
-  background:linear-gradient(135deg,rgba(52,211,153,.06),rgba(16,185,129,.02));
-  border:1px solid rgba(52,211,153,.12);border-radius:16px;
-  padding:20px;margin-top:16px}
-.info-card .info-title{font-size:14px;font-weight:700;color:#34d399;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.info-card p{font-size:13px;color:rgba(255,255,255,.45);line-height:1.8;margin-bottom:10px}
-.info-card p:last-child{margin-bottom:0}
-.info-card b{color:rgba(52,211,153,.8)}
-.info-card .highlight-box{
-  background:rgba(0,0,0,.2);border-radius:10px;border-left:3px solid rgba(251,191,36,.4);
-  padding:12px 14px;margin:10px 0;font-size:12px;color:rgba(255,255,255,.4);line-height:1.7}
-.info-card .highlight-box b{color:#fbbf24}
+  .tab-btn {
+    flex: 1; min-width: 110px; padding: 12px 10px;
+    border: none; border-radius: 14px 14px 0 0;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s; background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(8px); color: var(--text-secondary);
+    white-space: nowrap; text-align: center;
+  }
+  .tab-btn.active {
+    background: var(--card); color: var(--primary);
+    box-shadow: 0 -2px 12px rgba(37,99,235,0.15);
+  }
+
+  .main { padding: 0 16px 100px; max-width: 600px; margin: 0 auto; }
+
+  .tab-panel { display: none; animation: fadeIn 0.35s ease; }
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(8px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 24px 20px; margin-bottom: 14px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 15px; font-weight: 800; color: var(--primary);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .card-title .icon.blue { background: var(--primary-light); }
+  .card-title .icon.green { background: var(--success-light); }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 700;
+    color: var(--text-secondary); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex:1; }
+
+  .input-wrap { position: relative; display: flex; align-items: center; }
+  .input-wrap input {
+    width: 100%; padding: 12px 14px;
+    border: 2px solid var(--border); border-radius: 12px;
+    font-size: 16px; font-weight: 600; color: var(--text);
+    background: #f8fafc; transition: border-color 0.2s;
+    outline: none; -webkit-appearance: none;
+  }
+  .input-wrap input:focus { border-color: var(--primary); background: #fff; }
+  .input-wrap .unit {
+    position: absolute; right: 12px; font-size: 12px;
+    font-weight: 700; color: var(--text-secondary); pointer-events: none;
+  }
+
+  .calc-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff; font-size: 15px; font-weight: 800; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35); margin-top: 6px;
+  }
+  .calc-btn:active { transform: scale(0.97); }
+
+  .result-box {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 2px solid #86efac; border-radius: 14px;
+    padding: 18px 20px; margin-top: 14px; transition: all 0.3s;
+  }
+  .result-box.highlight { animation: pulse 0.5s ease; }
+  @keyframes pulse {
+    0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); }
+  }
+  .result-label {
+    font-size: 11px; font-weight: 700; color: #16a34a;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .result-value {
+    font-size: 26px; font-weight: 900; color: #15803d; word-break: break-all;
+  }
+  .result-value .r-unit { font-size: 14px; font-weight: 600; color: #22c55e; margin-left: 4px; }
+  .result-sub {
+    font-size: 13px; font-weight: 600; color: #16a34a;
+    margin-top: 8px; padding-top: 8px; border-top: 1px dashed #86efac;
+  }
+
+  .info-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    background: var(--primary-light); color: var(--primary); margin-bottom: 12px;
+  }
+
+  .formula-box {
+    background: #1e293b; color: #e2e8f0;
+    padding: 14px 16px; border-radius: 10px;
+    font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace;
+    line-height: 1.8; overflow-x: auto; margin-top: 10px;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .formula-box .keyword { color: #60a5fa; }
+  .formula-box .func { color: #f59e0b; }
+  .formula-box .num { color: #34d399; }
+
+  select {
+    width: 100%; padding: 12px 14px;
+    border: 2px solid var(--border); border-radius: 12px;
+    font-size: 15px; font-weight: 600; color: var(--text);
+    background: #f8fafc; outline: none;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2364748b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; cursor: pointer;
+  }
+
+  @media (min-width: 480px) {
+    .header h1 { font-size: 26px; }
+    .main { padding: 0 20px 100px; }
+  }
 </style>
 </head>
 <body>
+
 <div class="header">
-<h1>⚡ ESD / DCS 통합 계산기</h1>
-<p>Transmitter 신호 변환 계산</p>
+  <h1>⚙️ DCS / ESD 계산기</h1>
+  <p>계기 엔지니어링 계산 도구</p>
 </div>
 
-<div class="main-tabs">
-<button class="main-tab active" id="tabESD" onclick="switchMain('esd')">⚡ ESD AI Range</button>
-<button class="main-tab" id="tabDCS" onclick="switchMain('dcs')">📟 DCS Low-Input Cut</button>
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('lowcut', this)">📐 DCS Low Cut</button>
+  <button class="tab-btn" onclick="switchTab('pulse', this)">💓 Pulse Rate</button>
+  <button class="tab-btn" onclick="switchTab('esd', this)">🔧 ESD AI Range</button>
 </div>
 
-<!-- ==================== ESD 패널 ==================== -->
-<div class="panel active" id="panel-esd">
-<div class="container">
-<div class="setup-guide" id="esdGuide" style="display:none"><div class="emoji">👋</div><div class="title">먼저 Transmitter Range를 설정해주세요!</div><div class="desc">아래에서 Range (하한/상한) 값을 입력하고 <b style="color:#fbbf24">💾 설정 저장</b>을 눌러주세요.</div></div>
-<div class="settings-toggle" id="esdToggle" onclick="toggleESD()"><div class="left"><span>⚙️</span><span>Range 설정</span></div><div class="right"><span id="esdSummary">0 ~ 650</span><span class="arrow" id="esdArrow">▼</span></div></div>
-<div class="settings-body" id="esdBody">
-<div class="card"><div class="card-title"><span class="icon">🔒</span> 기본 상수 (고정)</div><div class="const-grid"><div class="const-item"><div class="const-label">4mA Real</div><div class="const-value">819</div></div><div class="const-item"><div class="const-label">20mA Real</div><div class="const-value">4095</div></div></div></div>
-<div class="card"><div class="card-title"><span class="icon">✏️</span> Transmitter Range</div><div class="input-group"><div class="input-label">4mA Range (하한)</div><input type="number" id="esdD3" value="0" placeholder="0"></div><div class="input-group"><div class="input-label">20mA Range (상한)</div><input type="number" id="esdD7" value="650" placeholder="650"></div><button class="calc-btn" onclick="saveESD()">💾 설정 저장</button></div>
-<div class="card"><div class="card-title"><span class="icon">📊</span> 중간값 참조</div><table class="mid-table"><tr><th>mA</th><th>Real</th><th>RAW</th><th>Range</th></tr><tr><td>4</td><td>819</td><td>0</td><td id="eMidD3">0</td></tr><tr><td>8</td><td id="eMidB4">1638</td><td>0.25</td><td id="eMidD4">162.5</td></tr><tr><td>12</td><td id="eMidB5">2457</td><td>0.5</td><td id="eMidD5">325</td></tr><tr><td>16</td><td id="eMidB6">3276</td><td>0.75</td><td id="eMidD6">487.5</td></tr><tr><td>20</td><td>4095</td><td>1</td><td id="eMidD7">650</td></tr></table></div></div>
-<div class="range-badge" id="esdBadge">📡 Range: 0 ~ 650</div>
-<div class="card hero" id="esdCard">
-<div class="card-title"><span class="icon">⚡</span> ESD 값 빠른 변환</div>
-<div class="mode-switch"><button class="mode-btn active" id="eModeReal" onclick="eSetMode('real')">Real</button><button class="mode-btn" id="eModeValue" onclick="eSetMode('value')">Value</button><button class="mode-btn" id="eModeMA" onclick="eSetMode('ma')">mA</button></div>
-<div class="input-wrap"><input type="number" id="eInput" placeholder="Real 값을 입력하세요" oninput="eCalc()" inputmode="decimal"><span class="input-tag" id="eTag">Real</span></div>
-<div class="results-title">📊 선형 (Linear)</div>
-<div class="grid-3"><div class="result-box" id="eb_lr"><div class="result-label">Real</div><div class="result-value" id="eo_lr">-</div></div><div class="result-box" id="eb_lv"><div class="result-label">Value</div><div class="result-value" id="eo_lv">-</div></div><div class="result-box" id="eb_lm"><div class="result-label">mA</div><div class="result-value" id="eo_lm">-</div></div></div>
-<div class="results-title">📐 제곱근 (SQRT)</div>
-<div class="grid-3"><div class="result-box sqrt" id="eb_sr"><div class="result-label">√ Real</div><div class="result-value" id="eo_sr">-</div></div><div class="result-box sqrt" id="eb_sv"><div class="result-label">√ Value</div><div class="result-value" id="eo_sv">-</div></div><div class="result-box sqrt" id="eb_sm"><div class="result-label">√ mA</div><div class="result-value" id="eo_sm">-</div></div></div>
-<div class="bar-section"><div class="results-title">📶 신호 비율</div>
-<div class="bar-group"><div class="bar-header"><span class="bar-label">📊 선형</span><span class="bar-pct lin" id="ebar_lp">-</span></div><div class="bar-track"><div class="bar-ticks"><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div></div><div class="bar-fill lin" id="ebar_lf" style="width:0%"></div></div><div class="bar-scale" id="escale_l"><div class="bar-scale-item"><span class="bar-scale-pct">0%</span><span class="bar-scale-val">0</span></div><div class="bar-scale-item"><span class="bar-scale-pct">25%</span><span class="bar-scale-val">-</span></div><div class="bar-scale-item"><span class="bar-scale-pct">50%</span><span class="bar-scale-val">-</span></div><div class="bar-scale-item"><span class="bar-scale-pct">75%</span><span class="bar-scale-val">-</span></div><div class="bar-scale-item"><span class="bar-scale-pct">100%</span><span class="bar-scale-val">-</span></div></div></div>
-<div class="bar-group"><div class="bar-header"><span class="bar-label">📐 SQRT</span><span class="bar-pct sq" id="ebar_sp">-</span></div><div class="bar-track"><div class="bar-ticks"><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div><div class="bar-tick"></div></div><div class="bar-fill sq" id="ebar_sf" style="width:0%"></div></div><div class="bar-scale" id="escale_s"><div class="bar-scale-item"><span class="bar-scale-pct">0%</span><span class="bar-scale-val">0</span></div><div class="bar-scale-item"><span class="bar-scale-pct">25%</span><span class="bar-scale-val">-</span></div><div class="bar-scale-item"><span class="bar-scale-pct">50%</span><span class="bar-scale-val">-</span></div><div class="bar-scale-item"><span class="bar-scale-pct">75%</span><span class="bar-scale-val">-</span></div><div class="bar-scale-item"><span class="bar-scale-pct">100%</span><span class="bar-scale-val">-</span></div></div></div></div>
-<div class="disabled-msg" id="esdDisabled" style="display:none">☝️ 위에서 Range를 먼저 설정해주세요</div>
-</div></div></div>
+<div class="main">
 
-<!-- ==================== DCS 패널 ==================== -->
-<div class="panel" id="panel-dcs">
-<div class="container dcs">
+  <!-- ═══ TAB 1: DCS Low Cut ═══ -->
+  <div id="tab-lowcut" class="tab-panel active">
+    <div class="card" style="border-radius: 0 var(--radius) var(--radius) var(--radius);">
+      <div class="card-title"><span class="icon blue">📊</span> Tag Faceplate Range 설정</div>
+      <div class="info-badge">🔢 DCS Real Range: 0 ~ 100 (%)</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Low</label>
+          <div class="input-wrap"><input type="number" id="lc-low" value="-100" step="any"></div>
+        </div>
+        <div class="form-group">
+          <label>High</label>
+          <div class="input-wrap"><input type="number" id="lc-high" value="0" step="any"></div>
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <div class="input-wrap"><input type="text" id="lc-unit" value="KG / H"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon blue">🎯</span> DCS Low Cut Value 입력</div>
+      <div class="form-group">
+        <label>Low Cut Value (%)</label>
+        <div class="input-wrap">
+          <input type="number" id="lc-value" value="0.5" step="any">
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcLowCut()">계산하기 ▶</button>
+    </div>
+    <div id="lc-result" class="result-box" style="display:none;">
+      <div class="result-label">📌 Faceplate Value</div>
+      <div class="result-value" id="lc-result-val">—</div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title"><span class="icon green">📝</span> 계산 공식</div>
+      <div class="formula-box"><span class="func">Faceplate</span> = <span class="func">√</span>( <span class="keyword">LowCutValue</span> / 100 ) × ( <span class="keyword">High</span> - <span class="keyword">Low</span> ) + <span class="keyword">Low</span></div>
+    </div>
+  </div>
 
-<div class="setup-guide" id="dcsGuide" style="display:none">
-<div class="emoji">📟</div>
-<div class="title">Faceplate Range를 설정해주세요!</div>
-<div class="desc">DCS Faceplate에 표시되는 유량 범위와 단위를 입력하고<br><b style="color:#fbbf24">💾 설정 저장</b>을 눌러주세요.</div>
+  <!-- ═══ TAB 2: DCS Pulse Rate ═══ -->
+  <div id="tab-pulse" class="tab-panel">
+    <div class="card" style="border-radius: 0 var(--radius) var(--radius) var(--radius);">
+      <div class="card-title"><span class="icon blue">📊</span> DCS Range 설정</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Low</label>
+          <div class="input-wrap"><input type="number" id="pr-low" value="0" step="any"></div>
+        </div>
+        <div class="form-group">
+          <label>High</label>
+          <div class="input-wrap"><input type="number" id="pr-high" value="2500" step="any"></div>
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <div class="input-wrap"><input type="text" id="pr-unit" value="KG"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon blue">🔀</span> 계산 유형 선택</div>
+      <select id="pr-mode" onchange="togglePulseMode()">
+        <option value="rate">🔹 Pulse Rate 계산 (1 Pulse → Rate)</option>
+        <option value="kg">🔹 Pulse 당 KG 계산 (Rate → 1 Pulse)</option>
+        <option value="width">🔹 Pulse Width 계산</option>
+      </select>
+    </div>
+    <div id="pr-mode-rate" class="card">
+      <div class="card-title"><span class="icon blue">⚡</span> Pulse Rate 계산</div>
+      <div class="form-group">
+        <label>1 Pulse 무게</label>
+        <div class="input-wrap">
+          <input type="number" id="pr-1pulse" value="0.1" step="any">
+          <span class="unit" id="pr-1pulse-unit">KG</span>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcPulseRate()">계산하기 ▶</button>
+      <div id="pr-rate-result" class="result-box" style="display:none;">
+        <div class="result-label">📌 계산 결과</div>
+        <div class="result-value" id="pr-rate-val">—</div>
+        <div class="result-sub" id="pr-rate-sub"></div>
+      </div>
+    </div>
+    <div id="pr-mode-kg" class="card" style="display:none;">
+      <div class="card-title"><span class="icon blue">📦</span> Pulse 당 KG 계산</div>
+      <div class="form-group">
+        <label>Pulse Rate</label>
+        <div class="input-wrap">
+          <input type="number" id="pr-hz" value="6.94444" step="any">
+          <span class="unit">P/S (HZ)</span>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcPulseKG()">계산하기 ▶</button>
+      <div id="pr-kg-result" class="result-box" style="display:none;">
+        <div class="result-label">📌 1 Pulse 무게</div>
+        <div class="result-value" id="pr-kg-val">—</div>
+      </div>
+    </div>
+    <div id="pr-mode-width" class="card" style="display:none;">
+      <div class="card-title"><span class="icon blue">📏</span> Pulse Width 계산</div>
+      <div class="form-group">
+        <label>Pulse Width</label>
+        <div class="input-wrap">
+          <input type="number" id="pr-width" value="72" step="any">
+          <span class="unit">msec</span>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcPulseWidth()">계산하기 ▶</button>
+      <div id="pr-width-result" class="result-box" style="display:none;">
+        <div class="result-label">📌 Pulse Width 환산</div>
+        <div class="result-value" id="pr-width-val">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon green">📝</span> 계산 공식</div>
+      <div class="formula-box"><span class="func">Pulse Rate</span> = <span class="keyword">High</span> / 3600 / <span class="keyword">1Pulse</span>  <span style="color:#94a3b8;">[P/S]</span>
+<span class="func">Pulse Width</span> = 1 / <span class="keyword">Rate</span> / 2 × 1000  <span style="color:#94a3b8;">[msec]</span>
+<span class="func">1 Pulse</span> = <span class="keyword">High</span> / 3600 / <span class="keyword">Rate</span>  <span style="color:#94a3b8;">[KG]</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 3: ESD AI Range ═══ -->
+  <div id="tab-esd" class="tab-panel">
+    <div class="card" style="border-radius: 0 var(--radius) var(--radius) var(--radius);">
+      <div class="card-title"><span class="icon blue">📊</span> Tag Range 설정</div>
+      <div class="info-badge">🔢 ESD Real Range: 819 ~ 4095</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Low</label>
+          <div class="input-wrap"><input type="number" id="esd-low" value="0" step="any"></div>
+        </div>
+        <div class="form-group">
+          <label>High</label>
+          <div class="input-wrap"><input type="number" id="esd-high" value="100" step="any"></div>
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <div class="input-wrap"><input type="text" id="esd-unit" value="KG / H"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon blue">🔀</span> 계산 방향 선택</div>
+      <select id="esd-mode" onchange="toggleEsdMode()">
+        <option value="real2face">🔹 Real Value → Faceplate Value</option>
+        <option value="face2real">🔹 Faceplate Value → Real Value</option>
+      </select>
+    </div>
+    <div id="esd-mode-r2f" class="card">
+      <div class="card-title"><span class="icon blue">➡️</span> Real Value → Faceplate</div>
+      <div class="form-group">
+        <label>Real Value (819~4095)</label>
+        <div class="input-wrap"><input type="number" id="esd-real" value="880" step="any"></div>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="esd-sqrt1" style="width:18px;height:18px;accent-color:var(--primary);">
+          <span style="font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;">Square Root 적용</span>
+        </label>
+      </div>
+      <button class="calc-btn" onclick="calcEsdR2F()">계산하기 ▶</button>
+      <div id="esd-r2f-result" class="result-box" style="display:none;">
+        <div class="result-label">📌 Faceplate Value</div>
+        <div class="result-value" id="esd-r2f-val">—</div>
+        <div class="result-sub" id="esd-r2f-ma">—</div>
+      </div>
+    </div>
+    <div id="esd-mode-f2r" class="card" style="display:none;">
+      <div class="card-title"><span class="icon blue">⬅️</span> Faceplate → Real Value</div>
+      <div class="form-group">
+        <label>Faceplate Value</label>
+        <div class="input-wrap">
+          <input type="number" id="esd-face" value="1.862" step="any">
+          <span class="unit" id="esd-face-unit">KG / H</span>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="esd-sqrt2" style="width:18px;height:18px;accent-color:var(--primary);">
+          <span style="font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;">Square Root 적용</span>
+        </label>
+      </div>
+      <button class="calc-btn" onclick="calcEsdF2R()">계산하기 ▶</button>
+      <div id="esd-f2r-result" class="result-box" style="display:none;">
+        <div class="result-label">📌 Real Value</div>
+        <div class="result-value" id="esd-f2r-val">—</div>
+        <div class="result-sub" id="esd-f2r-ma">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="icon green">📝</span> 계산 공식</div>
+      <div class="formula-box"><span style="color:#94a3b8;">[ Linear ]</span>
+<span class="func">Faceplate</span> = (<span class="keyword">High</span>-<span class="keyword">Low</span>) × <span class="keyword">Real</span> / <span class="num">3276</span>
+          − (<span class="keyword">High</span>-<span class="keyword">Low</span>) × <span class="num">819</span> / <span class="num">3276</span> + <span class="keyword">Low</span>
+
+<span style="color:#94a3b8;">[ Square Root ]</span>
+<span class="func">Faceplate</span> = <span class="func">√</span>((<span class="keyword">Real</span>-819) / 3276) × <span class="keyword">High</span>
+
+<span style="color:#94a3b8;">[ mA 환산 ]</span>
+<span class="func">mA</span> = 16 × (<span class="keyword">Real</span> - <span class="num">819</span>) / <span class="num">3276</span> + <span class="num">4</span></div>
+    </div>
+  </div>
+
 </div>
-
-<div class="settings-toggle" id="dcsToggle" onclick="toggleDCS()">
-<div class="left"><span>⚙️</span><span style="color:#34d399">Faceplate Range 설정</span></div>
-<div class="right"><span id="dcsSummary">0 ~ 1000</span><span class="arrow" id="dcsArrow">▼</span></div>
-</div>
-
-<div class="settings-body" id="dcsBody">
-<div class="card">
-<div class="card-title"><span class="icon">🔒</span> DCS Real Range (고정)</div>
-<div class="const-grid">
-<div class="const-item"><div class="const-label">4mA (0%)</div><div class="const-value">0</div></div>
-<div class="const-item"><div class="const-label">20mA (100%)</div><div class="const-value">100</div></div>
-</div></div>
-<div class="card">
-<div class="card-title"><span class="icon">✏️</span> Faceplate Range</div>
-<div class="input-group"><div class="input-label">Faceplate Range (Low)</div><input type="number" id="dcsC3" value="0" placeholder="0"></div>
-<div class="input-group"><div class="input-label">Faceplate Range (High)</div><input type="number" id="dcsC7" value="1000" placeholder="1000"></div>
-<div class="input-group"><div class="input-label">단위 (Unit)</div><input type="text" class="unit-input" id="dcsUnit" value="" placeholder="예: m³/h, kg/h, t/h ..."></div>
-<button class="calc-btn" onclick="saveDCS()">💾 설정 저장</button>
-</div></div>
-
-<div class="range-badge" id="dcsBadge">🖥️ Faceplate: 0 ~ 1000</div>
-
-<!-- Low-Input Cut 계산 -->
-<div class="card hero" id="dcsCard">
-<div class="card-title"><span class="icon">📟</span> Low-Input Cut 계산</div>
-
-<div class="input-group">
-<div class="input-label">Low-Input Cut Value 입력 (0 ~ 100%)</div>
-<div class="input-wrap">
-<input type="number" id="dInput" placeholder="기본값: 0.5" oninput="dCalc()" inputmode="decimal" step="0.1" min="0" max="100">
-<span class="input-tag" style="color:rgba(52,211,153,.4)">%</span>
-</div>
-</div>
-
-<!-- 결과 -->
-<div class="dcs-result-hero" id="dcsResultHero">
-<div class="label">Low-Input Cut 유량 값</div>
-<div class="value" id="do_result">-</div>
-<div class="unit-display" id="do_unit_display"></div>
-<div class="sub" id="do_sub"></div>
-</div>
-
-<!-- 수식 -->
-<div class="dcs-formula">
-<b>√</b>( <span id="df_cut">?</span> / 100 ) × <span id="df_fp">?</span> = <b id="df_result">?</b> <span id="df_unit"></span>
-</div>
-
-<div class="disabled-msg" id="dcsDisabled" style="display:none">☝️ 위에서 Faceplate Range를 먼저 설정해주세요</div>
-</div>
-
-<!-- 설명 -->
-<div class="info-card">
-<div class="info-title">💡 이 계산기의 목적</div>
-<p>차압식 유량계가 사용되는 경우, 차압을 나타내는 아날로그 입력 신호를 유량 신호로 변환하기 위해서는 <b>제곱근(Square Root)을 추출</b>해주어야 합니다.</p>
-<p>해당 기능은 <b>DCS Block 내부 입력 신호 변환 유형</b>에서 <b>Square Root</b>가 선택되어 있어야 동작하며, 낮은 입력에서 오차를 제거하기 위해 <b>Low-Cut 기능</b>이 자동으로 설정됩니다.</p>
-<div class="highlight-box">
-<b>기본 세팅 값: 0.5%</b><br>
-이 계산기는 Low-Cut 세팅 후 <b>유량이 표시되는 최소 값</b>을 계산하기 위해 만들어졌습니다.
-</div>
-</div>
-
-</div></div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-/* ===== 공통 ===== */
-function fmt(n){if(isNaN(n)||!isFinite(n))return'Error';return parseFloat(n.toFixed(6)).toString()}
-function fs(n){if(isNaN(n)||!isFinite(n))return'-';return Number.isInteger(n)?n.toString():parseFloat(n.toFixed(2)).toString()}
-function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
-function updBar(fId,lId,pct){const f=document.getElementById(fId),l=document.getElementById(lId);if(pct===null||isNaN(pct)){f.style.width='0%';l.innerHTML='-';return}f.style.width=Math.max(0,Math.min(pct,100))+'%';let h=parseFloat(pct.toFixed(2))+'%';if(pct>100)h+='<span class="over"> ▲ 초과</span>';else if(pct<0)h='<span class="over">▼ 하한 미만</span>';l.innerHTML=h}
-function updScale(id,pcts,valFn){const items=document.getElementById(id).querySelectorAll('.bar-scale-item');pcts.forEach((p,i)=>{items[i].querySelector('.bar-scale-pct').textContent=p+'%';items[i].querySelector('.bar-scale-val').textContent=fs(valFn(p))})}
-function switchMain(t){
-document.getElementById('panel-esd').classList.toggle('active',t==='esd');
-document.getElementById('panel-dcs').classList.toggle('active',t==='dcs');
-document.getElementById('tabESD').className='main-tab'+(t==='esd'?' active':'');
-document.getElementById('tabDCS').className='main-tab'+(t==='dcs'?' dcs-active':'')}
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+function togglePulseMode() {
+  const mode = document.getElementById('pr-mode').value;
+  document.getElementById('pr-mode-rate').style.display = mode === 'rate' ? 'block' : 'none';
+  document.getElementById('pr-mode-kg').style.display = mode === 'kg' ? 'block' : 'none';
+  document.getElementById('pr-mode-width').style.display = mode === 'width' ? 'block' : 'none';
+}
+function toggleEsdMode() {
+  const mode = document.getElementById('esd-mode').value;
+  document.getElementById('esd-mode-r2f').style.display = mode === 'real2face' ? 'block' : 'none';
+  document.getElementById('esd-mode-f2r').style.display = mode === 'face2real' ? 'block' : 'none';
+}
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function showResult(boxId, valueId, value, subId, subText) {
+  const box = document.getElementById(boxId);
+  document.getElementById(valueId).innerHTML = value;
+  if (subId && subText) document.getElementById(subId).innerHTML = subText;
+  box.style.display = 'block';
+  box.classList.remove('highlight'); void box.offsetWidth; box.classList.add('highlight');
+}
+function fmt(n, d=6) {
+  if (isNaN(n) || !isFinite(n)) return '—';
+  return parseFloat(n.toFixed(d)).toString();
+}
 
-/* ==================== ESD ==================== */
-const EB3=819,EB7=4095,ES=EB7-EB3;
-let eD3,eD7,eMode='real',eCfg=localStorage.getItem('esd_ok')==='1';
-function eR2ma(r){return 16*((r-EB3)/ES)+4}
-function eMa2r(m){return ES*((m-4)/16)+EB3}
-function eR2v(r){return((eD7-eD3)*((r-EB3)/ES))+eD3}
-function eV2r(v){const d=eD7-eD3;return d===0?EB3:ES*((v-eD3)/d)+EB3}
-function eR2sq(r){const ratio=(r-EB3)/ES;return ratio>=0?Math.sqrt(ratio)*eD7:NaN}
-function eSq2r(v){return eD7===0?EB3:Math.pow(v/eD7,2)*ES+EB3}
-function initESD(){
-if(!eCfg){eD3=0;eD7=650;document.getElementById('esdGuide').style.display='block';document.getElementById('esdToggle').classList.add('highlight');document.getElementById('esdBody').classList.add('open');document.getElementById('esdArrow').classList.add('open');document.getElementById('esdCard').classList.add('disabled-overlay');document.getElementById('esdDisabled').style.display='block'}
-else{eD3=parseFloat(localStorage.getItem('esd_D3'))||0;eD7=parseFloat(localStorage.getItem('esd_D7'))||650}
-document.getElementById('esdD3').value=eD3;document.getElementById('esdD7').value=eD7;updESD()}
-function saveESD(){
-eD3=parseFloat(document.getElementById('esdD3').value)||0;eD7=parseFloat(document.getElementById('esdD7').value)||650;
-localStorage.setItem('esd_D3',eD3);localStorage.setItem('esd_D7',eD7);localStorage.setItem('esd_ok','1');eCfg=true;
-document.getElementById('esdGuide').style.display='none';document.getElementById('esdToggle').classList.remove('highlight');document.getElementById('esdBody').classList.remove('open');document.getElementById('esdArrow').classList.remove('open');document.getElementById('esdCard').classList.remove('disabled-overlay');document.getElementById('esdDisabled').style.display='none';
-updESD();showToast('✅ ESD 설정 완료!');setTimeout(()=>document.getElementById('eInput').focus(),400)}
-function updESD(){
-const B5=(EB7-EB3)/2+EB3,B4=(B5-EB3)/2+EB3,B6=(EB7-B5)/2+B5;const D5=(eD7-eD3)/2+eD3,D4=(D5-eD3)/2+eD3,D6=(eD7-D5)/2+D5;
-document.getElementById('eMidB4').textContent=fmt(B4);document.getElementById('eMidB5').textContent=fmt(B5);document.getElementById('eMidB6').textContent=fmt(B6);
-document.getElementById('eMidD3').textContent=fmt(eD3);document.getElementById('eMidD4').textContent=fmt(D4);document.getElementById('eMidD5').textContent=fmt(D5);document.getElementById('eMidD6').textContent=fmt(D6);document.getElementById('eMidD7').textContent=fmt(eD7);
-const t=eD3+' ~ '+eD7;document.getElementById('esdBadge').textContent='📡 Range: '+t;document.getElementById('esdSummary').textContent=t;
-updScale('escale_l',[0,25,50,75,100],p=>eD3+(eD7-eD3)*(p/100));updScale('escale_s',[0,25,50,75,100],p=>(p/100)*eD7)}
-function eSetMode(m){eMode=m;document.querySelectorAll('#panel-esd .mode-btn').forEach(b=>b.classList.remove('active'));
-document.getElementById(m==='real'?'eModeReal':m==='value'?'eModeValue':'eModeMA').classList.add('active');
-const inp=document.getElementById('eInput'),tag=document.getElementById('eTag');inp.value='';eClear();
-if(m==='real'){inp.placeholder='Real 값을 입력하세요';tag.textContent='Real'}else if(m==='value'){inp.placeholder='Value 값을 입력하세요';tag.textContent='Value'}else{inp.placeholder='mA 값을 입력하세요';tag.textContent='mA'}inp.focus()}
-function eCalc(){
-const v=parseFloat(document.getElementById('eInput').value);if(isNaN(v)){eClear();return}
-let lr,sr;if(eMode==='real'){lr=v;sr=v}else if(eMode==='value'){lr=eV2r(v);sr=eSq2r(v)}else{lr=eMa2r(v);sr=lr}
-document.getElementById('eo_lr').textContent=fmt(lr);document.getElementById('eo_lv').textContent=fmt(eR2v(lr));document.getElementById('eo_lm').textContent=fmt(eR2ma(lr));
-const sq=eR2sq(sr),sm=eR2ma(sr),ratio=(sr-EB3)/ES,sqRaw=ratio>=0?Math.sqrt(ratio):NaN;
-document.getElementById('eo_sr').textContent=isNaN(sq)?'N/A':fmt(sr);document.getElementById('eo_sv').textContent=isNaN(sq)?'N/A':fmt(sq);document.getElementById('eo_sm').textContent=isNaN(sq)?'N/A':fmt(sm);
-updBar('ebar_lf','ebar_lp',((lr-EB3)/ES)*100);updBar('ebar_sf','ebar_sp',isNaN(sqRaw)?null:sqRaw*100);
-document.querySelectorAll('#panel-esd .result-box').forEach(b=>b.classList.remove('is-input'));
-if(eMode==='real'){document.getElementById('eb_lr').classList.add('is-input');document.getElementById('eb_sr').classList.add('is-input')}
-else if(eMode==='value'){document.getElementById('eb_lv').classList.add('is-input');document.getElementById('eb_sv').classList.add('is-input')}
-else{document.getElementById('eb_lm').classList.add('is-input');document.getElementById('eb_sm').classList.add('is-input')}}
-function eClear(){['eo_lr','eo_lv','eo_lm','eo_sr','eo_sv','eo_sm'].forEach(id=>document.getElementById(id).textContent='-');
-document.querySelectorAll('#panel-esd .result-box').forEach(b=>b.classList.remove('is-input'));updBar('ebar_lf','ebar_lp',null);updBar('ebar_sf','ebar_sp',null)}
-function toggleESD(){document.getElementById('esdBody').classList.toggle('open');document.getElementById('esdArrow').classList.toggle('open')}
+function calcLowCut() {
+  const low = getVal('lc-low'), high = getVal('lc-high');
+  const unit = document.getElementById('lc-unit').value;
+  const lcv = getVal('lc-value');
+  const faceplate = Math.sqrt(lcv / 100) * (high - low) + low;
+  showResult('lc-result', 'lc-result-val', fmt(faceplate, 4) + ' <span class="r-unit">' + unit + '</span>');
+}
 
-/* ==================== DCS ==================== */
-let dC3,dC7,dUnit='',dCfg=localStorage.getItem('dcs_ok')==='1';
+function calcPulseRate() {
+  const high = getVal('pr-high'), unit = document.getElementById('pr-unit').value;
+  const onePulse = getVal('pr-1pulse');
+  if (onePulse === 0) return alert('1 Pulse 값을 입력하세요.');
+  const rate = high / 3600 / onePulse;
+  const width = 1 / rate / 2 * 1000;
+  const verify = 1 / (width / 1000 * 2) * onePulse * 3600;
+  showResult('pr-rate-result', 'pr-rate-val',
+    fmt(rate, 5) + ' <span class="r-unit">P/S (HZ)</span>',
+    'pr-rate-sub',
+    'Pulse Width: <strong>' + fmt(width, 3) + ' msec</strong> &nbsp;|&nbsp; 검증: <strong>' + fmt(verify, 2) + ' ' + unit + '/H</strong>');
+}
+function calcPulseKG() {
+  const high = getVal('pr-high'), unit = document.getElementById('pr-unit').value;
+  const hz = getVal('pr-hz');
+  if (hz === 0) return alert('Pulse Rate를 입력하세요.');
+  const onePulse = high / 3600 / hz;
+  showResult('pr-kg-result', 'pr-kg-val', fmt(onePulse, 6) + ' <span class="r-unit">' + unit + '</span>');
+}
+function calcPulseWidth() {
+  const high = getVal('pr-high'), unit = document.getElementById('pr-unit').value;
+  const pw = getVal('pr-width');
+  if (pw === 0) return alert('Pulse Width를 입력하세요.');
+  const onePulse = getVal('pr-1pulse');
+  const rateFromWidth = 1 / (pw / 1000 * 2);
+  const kgPerH = rateFromWidth * onePulse * 3600;
+  showResult('pr-width-result', 'pr-width-val',
+    fmt(kgPerH, 4) + ' <span class="r-unit">' + unit + '/H</span>' +
+    '<div style="font-size:14px;margin-top:6px;color:#16a34a;">Rate: ' + fmt(rateFromWidth, 5) + ' P/S (HZ) &nbsp;|&nbsp; 1 Pulse: ' + fmt(onePulse, 4) + ' ' + unit + '</div>');
+}
 
-function initDCS(){
-if(!dCfg){dC3=0;dC7=1000;dUnit='';
-document.getElementById('dcsGuide').style.display='block';document.getElementById('dcsToggle').classList.add('highlight');document.getElementById('dcsBody').classList.add('open');document.getElementById('dcsArrow').classList.add('open');document.getElementById('dcsCard').classList.add('disabled-overlay');document.getElementById('dcsDisabled').style.display='block'}
-else{dC3=parseFloat(localStorage.getItem('dcs_C3'))||0;dC7=parseFloat(localStorage.getItem('dcs_C7'))||1000;dUnit=localStorage.getItem('dcs_unit')||''}
-document.getElementById('dcsC3').value=dC3;document.getElementById('dcsC7').value=dC7;document.getElementById('dcsUnit').value=dUnit;updDCS()}
+function calcEsdR2F() {
+  const low = getVal('esd-low'), high = getVal('esd-high');
+  const unit = document.getElementById('esd-unit').value;
+  const real = getVal('esd-real');
+  const useSqrt = document.getElementById('esd-sqrt1').checked;
+  const span = 4095 - 819;
+  let faceplate;
+  if (useSqrt) { faceplate = Math.sqrt((real - 819) / span) * high; }
+  else { faceplate = (high - low) * (real / span) - (high - low) * (819 / span) + low; }
+  const mA = 16 * (real - 819) / span + 4;
+  showResult('esd-r2f-result', 'esd-r2f-val',
+    fmt(faceplate, 4) + ' <span class="r-unit">' + unit + '</span>',
+    'esd-r2f-ma',
+    '전류: <strong>' + fmt(mA, 4) + ' mA</strong> &nbsp;|&nbsp; 모드: ' + (useSqrt ? 'Square Root' : 'Linear'));
+}
+function calcEsdF2R() {
+  const low = getVal('esd-low'), high = getVal('esd-high');
+  const unit = document.getElementById('esd-unit').value;
+  const face = getVal('esd-face');
+  const useSqrt = document.getElementById('esd-sqrt2').checked;
+  const span = 4095 - 819;
+  let real;
+  if (useSqrt) { real = Math.pow(face / high, 2) * span + 819; }
+  else { real = span * (face / (high - low)) - span * (low / (high - low)) + 819; }
+  const mA = 16 * (real - 819) / span + 4;
+  showResult('esd-f2r-result', 'esd-f2r-val', fmt(real, 4),
+    'esd-f2r-ma',
+    '전류: <strong>' + fmt(mA, 4) + ' mA</strong> &nbsp;|&nbsp; 모드: ' + (useSqrt ? 'Square Root' : 'Linear'));
+}
 
-function saveDCS(){
-dC3=parseFloat(document.getElementById('dcsC3').value)||0;dC7=parseFloat(document.getElementById('dcsC7').value)||1000;
-dUnit=document.getElementById('dcsUnit').value.trim();
-localStorage.setItem('dcs_C3',dC3);localStorage.setItem('dcs_C7',dC7);localStorage.setItem('dcs_unit',dUnit);localStorage.setItem('dcs_ok','1');dCfg=true;
-document.getElementById('dcsGuide').style.display='none';document.getElementById('dcsToggle').classList.remove('highlight');document.getElementById('dcsBody').classList.remove('open');document.getElementById('dcsArrow').classList.remove('open');document.getElementById('dcsCard').classList.remove('disabled-overlay');document.getElementById('dcsDisabled').style.display='none';
-updDCS();showToast('✅ DCS 설정 완료!');setTimeout(()=>document.getElementById('dInput').focus(),400)}
-
-function updDCS(){
-document.getElementById('dcsBadge').textContent='🖥️ Faceplate: '+dC3+' ~ '+dC7+(dUnit?' '+dUnit:'');
-document.getElementById('dcsSummary').textContent=dC3+' ~ '+dC7+(dUnit?' '+dUnit:'');
-document.getElementById('df_fp').textContent=dC7}
-
-function dCalc(){
-const cut=parseFloat(document.getElementById('dInput').value);
-if(isNaN(cut)||cut<0||cut>100){
-document.getElementById('do_result').textContent='-';
-document.getElementById('do_unit_display').textContent='';
-document.getElementById('do_sub').textContent='';
-document.getElementById('df_cut').textContent='?';document.getElementById('df_result').textContent='?';document.getElementById('df_unit').textContent='';return}
-
-const ratio=cut/100;
-const sqrtRatio=Math.sqrt(ratio);
-const result=sqrtRatio*dC7;
-
-document.getElementById('do_result').textContent=fs(result);
-document.getElementById('do_unit_display').textContent=dUnit||'';
-document.getElementById('do_sub').textContent='Low-Input Cut '+cut+'% 설정 시'+String.fromCharCode(10)+'유량이 표시되는 최소 값';
-
-document.getElementById('df_cut').textContent=cut;
-document.getElementById('df_result').textContent=fs(result);
-document.getElementById('df_unit').textContent=dUnit||''}
-
-function toggleDCS(){document.getElementById('dcsBody').classList.toggle('open');document.getElementById('dcsArrow').classList.toggle('open')}
-function resetDCS(){localStorage.removeItem('dcs_ok');dCfg=false;dcsLock();document.getElementById('dcsBody').classList.add('open');document.getElementById('dcsArrow').classList.add('open')}
-
-/* ===== 초기화 ===== */
-initESD();initDCS();
+document.getElementById('esd-unit').addEventListener('input', function() {
+  document.getElementById('esd-face-unit').textContent = this.value;
+});
+document.getElementById('pr-unit').addEventListener('input', function() {
+  document.getElementById('pr-1pulse-unit').textContent = this.value;
+});
 </script>
-</body></html>
+</body>
+</html>
